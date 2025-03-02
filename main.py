@@ -94,4 +94,13 @@ def create_user(director: Director):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+@app.post("/node/create-single-label")
+def create_single_label_node(data: dict):
+    try:
+        label = data.get("label")
+        result = db.create_node_with_label(label)
+        return {"message": "Node created successfully", "node_id": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
     

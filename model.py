@@ -251,3 +251,9 @@ class GraphDB:
                 from_n=int(from_n), to_n =int(to_n), 
                 rol=props[2],  apariciones=props[3], premios_obtenidos=props[4]
             )
+
+    ## crea nodo con 1 label
+    def create_node_with_label(self, label: str):
+        query = f"CREATE (n:{label}) RETURN id(n) AS node_id"
+        return self._execute_query(query)
+
