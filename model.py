@@ -257,3 +257,8 @@ class GraphDB:
         query = f"CREATE (n:{label}) RETURN id(n) AS node_id"
         return self._execute_query(query)
 
+    ## crea nodo con 2+ labels
+    def create_node_with_multiple_labels(self, labels: list):
+        labels_str = ":".join(labels)
+        query = f"CREATE (n:{labels_str}) RETURN id(n) AS node_id"
+        return self._execute_query(query)

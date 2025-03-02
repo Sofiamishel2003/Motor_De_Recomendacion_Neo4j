@@ -103,4 +103,12 @@ def create_single_label_node(data: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/node/create-multiple-labels")
+def create_multiple_labels_node(data: dict):
+    try:
+        labels = data.get("labels")
+        result = db.create_node_with_multiple_labels(labels)
+        return {"message": "Node created successfully", "node_id": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
     
