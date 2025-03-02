@@ -111,4 +111,16 @@ def create_multiple_labels_node(data: dict):
         return {"message": "Node created successfully", "node_id": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/node/create-with-properties")
+def create_node_with_properties(data: dict):
+    try:
+        label = data.get("label")
+        properties = data.get("properties")
+        if len(properties) < 5:
+            raise HTTPException(status_code=400, detail="At least 5 properties are required")
+        result = db.create_node_with_properties(label, properties)
+        return {"message": "Node created successfully", "node_id": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
     

@@ -262,3 +262,9 @@ class GraphDB:
         labels_str = ":".join(labels)
         query = f"CREATE (n:{labels_str}) RETURN id(n) AS node_id"
         return self._execute_query(query)
+
+    ## crea nodo con propiedades
+    def create_node_with_properties(self, label: str, properties: dict):
+        props_str = ", ".join([f"n.{key} = ${key}" for key in properties.keys()])
+        query = f"CREATE (n:{label}) SET {props_str} RETURN id(n) AS node_id"
+        return self._execute_query(query, **properties)
