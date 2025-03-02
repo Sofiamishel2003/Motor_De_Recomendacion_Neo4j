@@ -123,4 +123,53 @@ def create_node_with_properties(data: dict):
         return {"message": "Node created successfully", "node_id": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.put("/node/add-properties")
+def add_properties_to_node(data: dict):
+    try:
+        label = data.get("label")
+        node_id = data.get("id")
+        properties = data.get("properties")
+        result = db.add_properties_to_node(label, node_id, properties)
+        return {"message": "Properties added successfully", "node": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/nodes/{label}/add_properties")
+def add_properties_to_multiple_nodes(label: str, node_ids: list[int], properties: dict):
+    result = db.add_properties_to_multiple_nodes(label, node_ids, properties)
+    return {"message": "Properties added successfully", "updated_nodes": result}
+
+@app.put("/node/update-properties")
+def update_node_properties(data: dict):
+    try:
+        label = data.get("label")
+        node_id = data.get("id")
+        properties = data.get("properties")
+        result = db.update_node_properties(label, node_id, properties)
+        return {"message": "Properties updated successfully", "node": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.put("/nodes/{label}/update_properties")
+def update_properties_multiple_nodes(label: str, node_ids: list[int], properties: dict):
+    result = db.update_properties_multiple_nodes(label, node_ids, properties)
+    return {"message": "Properties updated successfully", "updated_nodes": result}
+
+@app.delete("/node/delete-properties")
+def delete_node_properties(data: dict):
+    try:
+        label = data.get("label")
+        node_id = data.get("id")
+        properties = data.get("properties")
+        result = db.delete_node_properties(label, node_id, properties)
+        return {"message": "Properties deleted successfully", "node": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/nodes/{label}/delete_properties")
+def delete_properties_multiple_nodes(label: str, node_ids: list[int], properties: list[str]):
+    result = db.delete_properties_multiple_nodes(label, node_ids, properties)
+    return {"message": "Properties deleted successfully", "updated_nodes": result}
+
     

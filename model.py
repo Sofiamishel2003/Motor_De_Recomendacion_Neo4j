@@ -268,3 +268,54 @@ class GraphDB:
         props_str = ", ".join([f"n.{key} = ${key}" for key in properties.keys()])
         query = f"CREATE (n:{label}) SET {props_str} RETURN id(n) AS node_id"
         return self._execute_query(query, **properties)
+
+    ## agrega propiedades a un nodo
+    def add_properties_to_node(self, label: str, node_id: int, properties: dict):
+        props_str = ", ".join([f"n.{key} = ${key}" for key in properties.keys()])
+        query = f"MATCH (n:{label}) WHERE id(n) = $node_id SET {props_str} RETURN n"
+        return self._execute_query(query, node_id=node_id, **properties)
+
+    ## agrega propiedades a varios nodos
+    def add_properties_to_multiple_nodes(self, label: str, node_ids: list, properties: dict):
+        props_str = ", ".join([f"n.{key} = ${key}" for key in properties.keys()])
+        query = f"""
+            MATCH (n:{label}) 
+            WHERE id(n) IN $node_ids 
+            SET {props_str} 
+            RETURN n
+        """
+        return self._execute_query(query, node_ids=node_ids, **properties)
+
+    ## actualiza propiedades en un nodo
+    def update_node_properties(self, label: str, node_id: int, properties: dict):
+        props_str = ", ".join([f"n.{key} = ${key}" for key in properties.keys()])
+        query = f"MATCH (n:{label}) WHERE id(n) = $node_id SET {props_str} RETURN n"
+        return self._execute_query(query, node_id=node_id, **properties)
+
+    ## actualizar propiedades en varios nodos
+    def update_properties_multiple_nodes(self, label: str, node_ids: list, properties: dict):
+        props_str = ", ".join([f"n.{key} = ${key}" for key in properties.keys()])
+        query = f"""
+            MATCH (n:{label}) 
+            WHERE id(n) IN $node_ids 
+            SET {props_str} 
+            RETURN n
+        """
+        return self._execute_query(query, node_ids=node_ids, **properties)
+
+    ## elimina propiedades de un nodo
+    def delete_node_properties(self, label: str, node_id: int, properties: list):
+        props_str = ", ".join([f"n.{prop} = NULL" for prop in properties])
+        query = f"MATCH (n:{label}) WHERE id(n) = $node_id SET {props_str} RETURN n"
+        return self._execute_query(query, node_id=node_id)
+
+    ## eliminar propiedades de varios nodos
+    def delete_properties_multiple_nodes(self, label: str, node_ids: list, properties: list):
+        props_str = ", ".join([f"n.{prop} = NULL" for prop in properties])
+        query = f"""
+            MATCH (n:{label}) 
+            WHERE id(n) IN $node_ids 
+            SET {props_str} 
+            RETURN n
+        """
+        return self._execute_query(query, node_ids=node_ids)
