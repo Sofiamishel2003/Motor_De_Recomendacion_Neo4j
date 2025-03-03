@@ -171,7 +171,8 @@ def delete_node_properties(data: dict):
 def delete_properties_multiple_nodes(label: str, node_ids: list[int], properties: list[str]):
     result = db.delete_properties_multiple_nodes(label, node_ids, properties)
     return {"message": "Properties deleted successfully", "updated_nodes": result}
-
+#----------------Manejo de Relaciones ------------------------
+# Crear relación
 @app.post("/relation/create")
 def create_relation(data: dict):
     try:
@@ -190,4 +191,50 @@ def create_relation(data: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    
+# Agregar Propiedades a una Relación
+@app.put("/relation/add-properties")
+def add_properties_to_relation(data: dict):
+    try:
+        relation_type = data.get("relation_type")
+        from_label = data.get("from_label")
+        from_id = data.get("from_id")
+        to_label = data.get("to_label")
+        to_id = data.get("to_id")
+        properties = data.get("properties")
+
+        result = db.add_properties_to_relation(from_label, from_id, to_label, to_id, relation_type, properties)
+        return {"message": "Properties added successfully", "relation": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Actualizar Propiedades de una Relación
+@app.put("/relation/update-properties")
+def update_relation_properties(data: dict):
+    try:
+        relation_type = data.get("relation_type")
+        from_label = data.get("from_label")
+        from_id = data.get("from_id")
+        to_label = data.get("to_label")
+        to_id = data.get("to_id")
+        properties = data.get("properties")
+
+        result = db.update_relation_properties(from_label, from_id, to_label, to_id, relation_type, properties)
+        return {"message": "Properties updated successfully", "relation": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Eliminar Propiedades de una Relación
+@app.delete("/relation/delete-properties")
+def delete_relation_properties(data: dict):
+    try:
+        relation_type = data.get("relation_type")
+        from_label = data.get("from_label")
+        from_id = data.get("from_id")
+        to_label = data.get("to_label")
+        to_id = data.get("to_id")
+        properties = data.get("properties")
+
+        result = db.delete_relation_properties(from_label, from_id, to_label, to_id, relation_type, properties)
+        return {"message": "Properties deleted successfully", "relation": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

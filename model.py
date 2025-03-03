@@ -319,6 +319,7 @@ class GraphDB:
             RETURN n
         """
         return self._execute_query(query, node_ids=node_ids)
+    # -------------- Manejo de relaciones --------------------------------------------
     ## Crear relación con propiedades
     def create_relation(self, from_label, from_id, to_label, to_id, relation_type, properties):
         props_str = ", ".join([f"{key}: ${key}" for key in properties.keys()])
@@ -328,3 +329,53 @@ class GraphDB:
             RETURN r
         """
         return self._execute_query(query, from_id=from_id, to_id=to_id, **properties)
+    
+    ## Agregar propiedades a una relación
+    def add_properties_to_relation(self, from_label, from_id, to_label, to_id, relation_type, properties):
+        props_str = ", ".join([f"r.{key} = ${key}" for key in properties.keys()])
+        query = f"""
+            MATCH (a:{from_label} {{id: $from_id}})-[r:{relation_type}]->(b:{to_label} {{id: $to_id}})
+            SET {props_str}
+            RETURN r
+        """
+        return self._execute_query(query, from_id=from_id, to_id=to_id, **properties)
+
+    ## Agregar multiples propiedades a una relación
+    def add_properties_to_multiple_relations(self, from_label, from_ids, to_label, to_ids, relation_type, properties):
+        props_str = ", ".join([f"r.{key} = ${key}" for key in properties.keys()])
+        query = f"""
+            MATCH (a:{from_label})-[r:{relation_type}]->(b:{to_label})
+            WHERE id(a) IN $from_ids AND id(b) IN $to_ids
+            SET {props_str}
+            RETURN r
+        """
+        return self._execute_query(query, from_ids=from_ids, to_ids=to_ids, **properties)
+
+    ## Actualizar propiedades de una relación
+    def update_relation_properties(self, from_label, from_id, to_label, to_id, relation_type, properties):
+        return self.add_properties_to_relation(from_label, from_id, to_label, to_id, relation_type, properties)
+
+    ## Actualizar multiples propiedades de una relación
+    def update_properties_multiple_relations(self, from_label, from_ids, to_label, to_ids, relation_type, properties):
+        return self.add_properties_to_multiple_relations(from_label, from_ids, to_label, to_ids, relation_type, properties)
+
+    ## Eliminar propiedades de una relación
+    def delete_relation_properties(self, from_label, from_id, to_label, to_id, relation_type, properties):
+        props_str = ", ".join([f"r.{prop} = NULL" for prop in properties])
+        query = f"""
+            MATCH (a:{from_label} {{id: $from_id}})-[r:{relation_type}]->(b:{to_label} {{id: $to_id}})
+            SET {props_str}
+            RETURN r
+        """
+        return self._execute_query(query, from_id=from_id, to_id=to_id)
+
+    ## Eliminar múltiples propiedades de una relación
+    def delete_properties_multiple_relations(self, from_label, from_ids, to_label, to_ids, relation_type, properties):
+        props_str = ", ".join([f"r.{prop} = NULL" for prop in properties])
+        query = f"""
+            MATCH (a:{from_label})-[r:{relation_type}]->(b:{to_label})
+            WHERE id(a) IN $from_ids AND id(b) IN $to_ids
+            SET {props_str}
+            RETURN r
+        """
+        return self._execute_query(query, from_ids=from_ids, to_ids=to_ids)
