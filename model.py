@@ -379,3 +379,30 @@ class GraphDB:
             RETURN r
         """
         return self._execute_query(query, from_ids=from_ids, to_ids=to_ids)
+    ##----------------------- Eliminar Nodos y Relaciones ---------------------------------------
+    ## Eliminar un nodo
+    def delete_node(self, label, node_id):
+        query = f"MATCH (n:{label} {{id: $node_id}}) DETACH DELETE n"
+        return self._execute_query(query, node_id=node_id)
+    
+    ## Eliminar varios nodos
+    def delete_multiple_nodes(self, label, node_ids):
+        query = f"MATCH (n:{label}) WHERE id(n) IN $node_ids DETACH DELETE n"
+        return self._execute_query(query, node_ids=node_ids)
+    
+    ## Eliminar una relación
+    def delete_relation(self, from_label, from_id, to_label, to_id, relation_type):
+        query = f"""
+            MATCH (a:{from_label} {{id: $from_id}})-[r:{relation_type}]->(b:{to_label} {{id: $to_id}})
+            DELETE r
+        """
+        return self._execute_query(query, from_id=from_id, to_id=to_id)
+
+    ## Eliminar varias relaciones
+    def delete_multiple_relations(self, from_label, from_ids, to_label, to_ids, relation_type):
+        query = f"""
+            MATCH (a:{from_label})-[r:{relation_type}]->(b:{to_label})
+            WHERE id(a) IN $from_ids AND id(b) IN $to_ids
+            DELETE r
+        """
+        return self._execute_query(query, from_ids=from_ids, to_ids=to_ids)

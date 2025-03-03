@@ -171,7 +171,7 @@ def delete_node_properties(data: dict):
 def delete_properties_multiple_nodes(label: str, node_ids: list[int], properties: list[str]):
     result = db.delete_properties_multiple_nodes(label, node_ids, properties)
     return {"message": "Properties deleted successfully", "updated_nodes": result}
-#----------------Manejo de Relaciones ------------------------
+#-----------------------------------Manejo de Relaciones --------------------------------------------
 # Crear relación
 @app.post("/relation/create")
 def create_relation(data: dict):
@@ -236,5 +236,60 @@ def delete_relation_properties(data: dict):
 
         result = db.delete_relation_properties(from_label, from_id, to_label, to_id, relation_type, properties)
         return {"message": "Properties deleted successfully", "relation": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ------------------------ Eliminar Nodos y Relaciones --------------------------------------------
+## Eliminar un nodo
+@app.delete("/node/delete")
+def delete_node(data: dict):
+    try:
+        label = data.get("label")
+        node_id = data.get("id")
+
+        result = db.delete_node(label, node_id)
+        return {"message": "Node deleted successfully", "deleted_node": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## Eliminar varios nodos
+@app.delete("/nodes/delete-multiple")
+def delete_multiple_nodes(data: dict):
+    try:
+        label = data.get("label")
+        node_ids = data.get("ids")
+
+        result = db.delete_multiple_nodes(label, node_ids)
+        return {"message": "Nodes deleted successfully", "deleted_nodes": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## Eliminar una relación
+@app.delete("/relation/delete")
+def delete_relation(data: dict):
+    try:
+        relation_type = data.get("relation_type")
+        from_label = data.get("from_label")
+        from_id = data.get("from_id")
+        to_label = data.get("to_label")
+        to_id = data.get("to_id")
+
+        result = db.delete_relation(from_label, from_id, to_label, to_id, relation_type)
+        return {"message": "Relation deleted successfully", "deleted_relation": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## Eliminar varias relaciones
+@app.delete("/relations/delete-multiple")
+def delete_multiple_relations(data: dict):
+    try:
+        relation_type = data.get("relation_type")
+        from_label = data.get("from_label")
+        from_ids = data.get("from_ids")
+        to_label = data.get("to_label")
+        to_ids = data.get("to_ids")
+
+        result = db.delete_multiple_relations(from_label, from_ids, to_label, to_ids, relation_type)
+        return {"message": "Relations deleted successfully", "deleted_relations": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
