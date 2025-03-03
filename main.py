@@ -1,7 +1,10 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from pydantic_settings import BaseSettings
 from model import GraphDB, Usuario, Pelicula, Serie, Genero, Actor, Director
-    
+from fastapi.middleware.cors import CORSMiddleware
+
+
+
 
 class Settings(BaseSettings):
     neo4j_uri: str
@@ -19,6 +22,15 @@ db = GraphDB(settings.neo4j_uri,settings.neo4j_username,settings.neo4j_password)
     
 # cargar_datos("./data.csv")
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows requests from any origin (*), you can specify domains here
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all HTTP methods
+    allow_headers=["*"],  # Allows all headers
+)
+
 @app.get("/")
 def home():
     return {"message": "Hello, FastAPI!"}
@@ -365,3 +377,6 @@ def get_nodes_by_label(label: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/search/{node_id}")
+def search_by_id(node_id: str):
+    return db.get_node_by_id(node_id)

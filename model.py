@@ -419,7 +419,7 @@ class GraphDB:
         """
         return self._execute_query(query, from_ids=from_ids, to_ids=to_ids)
 
-##--------------get all nodes--------------------##
+    ##--------------get all nodes--------------------##
     def get_all_nodes(self):
         query = "MATCH (n) RETURN n"
         return self._execute_query(query)
@@ -427,5 +427,23 @@ class GraphDB:
     def get_nodes_by_label(self, label: str):
         query = f"MATCH (n:{label}) RETURN n"
         return self._execute_query(query)
+
+    def get_node_by_id(self, node_id: str):
+        query = """
+            MATCH (n) WHERE ID(n) = toInteger($node_id)
+            RETURN labels(n) AS labels, ID(n) AS id
+        """
+        result = self._execute_query(query, node_id=node_id)
+
+        if result:
+            record = result[0]  # Extract the first result
+            return {
+                "id": record["id"],
+                "labels": record["labels"]
+            }
+
+        return {"error": "Node not found"}
+
+
 
 
