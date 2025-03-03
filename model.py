@@ -418,3 +418,14 @@ class GraphDB:
             DELETE r
         """
         return self._execute_query(query, from_ids=from_ids, to_ids=to_ids)
+
+##--------------get all nodes--------------------##
+    def get_all_nodes(self):
+        query = "MATCH (n) RETURN n"
+        return self._execute_query(query)
+
+    def get_nodes_by_label(self, label: str):
+        query = f"MATCH (n:{label}) RETURN n"
+        return self._execute_query(query)
+
+

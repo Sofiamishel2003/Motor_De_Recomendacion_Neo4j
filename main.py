@@ -347,3 +347,21 @@ def delete_multiple_relations(data: dict):
         return {"message": "Relations deleted successfully", "deleted_relations": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+## Get nodes -----------------------------------------------
+@app.get("/nodes")
+def get_all_nodes():
+    try:
+        result = db.get_all_nodes()
+        return {"nodes": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/nodes/{label}")
+def get_nodes_by_label(label: str):
+    try:
+        result = db.get_nodes_by_label(label)
+        return {"nodes": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
