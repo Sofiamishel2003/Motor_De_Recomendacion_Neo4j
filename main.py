@@ -10,6 +10,7 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
+        extra = "allow"  # Agregar esto para solución de problema:  Pydantic está detectando entradas adicionales en la configuración
 
 # Create a global settings instance
 settings = Settings()
@@ -206,7 +207,25 @@ def add_properties_to_relation(data: dict):
         return {"message": "Properties added successfully", "relation": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+# Agregar Propiedades a multiples relaciones
+@app.put("/relations/add-multiple-properties")
+def add_properties_to_multiple_relations(data: dict):
+    try:
+        relation_type = data.get("relation_type")
+        from_label = data.get("from_label")
+        from_ids = data.get("from_ids")
+        to_label = data.get("to_label")
+        to_ids = data.get("to_ids")
+        properties = data.get("properties")
 
+        if not properties:
+            raise HTTPException(status_code=400, detail="Se deben proporcionar al menos una propiedad")
+
+        result = db.add_properties_to_multiple_relations(from_label, from_ids, to_label, to_ids, relation_type, properties)
+        return {"message": "Properties added to multiple relations successfully", "updated_relations": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 # Actualizar Propiedades de una Relación
 @app.put("/relation/update-properties")
 def update_relation_properties(data: dict):
@@ -223,6 +242,22 @@ def update_relation_properties(data: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+## Actualizar propiedades de multiples relaciones
+@app.put("/relations/update-multiple")
+def update_properties_multiple_relations(data: dict):
+    try:
+        relation_type = data.get("relation_type")
+        from_label = data.get("from_label")
+        from_ids = data.get("from_ids")
+        to_label = data.get("to_label")
+        to_ids = data.get("to_ids")
+        properties = data.get("properties")
+
+        result = db.update_properties_multiple_relations(from_label, from_ids, to_label, to_ids, relation_type, properties)
+        return {"message": "Properties updated successfully", "updated_relations": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Eliminar Propiedades de una Relación
 @app.delete("/relation/delete-properties")
 def delete_relation_properties(data: dict):
@@ -236,6 +271,25 @@ def delete_relation_properties(data: dict):
 
         result = db.delete_relation_properties(from_label, from_id, to_label, to_id, relation_type, properties)
         return {"message": "Properties deleted successfully", "relation": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Eliminar Propiedades de multiples relaciones
+@app.delete("/relations/delete-multiple-properties")
+def delete_properties_multiple_relations(data: dict):
+    try:
+        relation_type = data.get("relation_type")
+        from_label = data.get("from_label")
+        from_ids = data.get("from_ids")
+        to_label = data.get("to_label")
+        to_ids = data.get("to_ids")
+        properties = data.get("properties")
+
+        if not properties:
+            raise HTTPException(status_code=400, detail="Se deben proporcionar al menos una propiedad para eliminar")
+
+        result = db.delete_properties_multiple_relations(from_label, from_ids, to_label, to_ids, relation_type, properties)
+        return {"message": "Properties deleted from multiple relations successfully", "updated_relations": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
