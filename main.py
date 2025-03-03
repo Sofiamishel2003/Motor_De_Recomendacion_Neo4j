@@ -172,4 +172,22 @@ def delete_properties_multiple_nodes(label: str, node_ids: list[int], properties
     result = db.delete_properties_multiple_nodes(label, node_ids, properties)
     return {"message": "Properties deleted successfully", "updated_nodes": result}
 
+@app.post("/relation/create")
+def create_relation(data: dict):
+    try:
+        from_label = data.get("from_label")
+        from_id = data.get("from_id")
+        to_label = data.get("to_label")
+        to_id = data.get("to_id")
+        relation_type = data.get("relation_type")
+        properties = data.get("properties")
+
+        if len(properties) < 3:
+            raise HTTPException(status_code=400, detail="Se requieren al menos 3 propiedades")
+
+        result = db.create_relation(from_label, from_id, to_label, to_id, relation_type, properties)
+        return {"message": "Relation created successfully", "relation": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
     

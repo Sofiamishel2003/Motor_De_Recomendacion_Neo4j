@@ -319,3 +319,12 @@ class GraphDB:
             RETURN n
         """
         return self._execute_query(query, node_ids=node_ids)
+    ## Crear relación con propiedades
+    def create_relation(self, from_label, from_id, to_label, to_id, relation_type, properties):
+        props_str = ", ".join([f"{key}: ${key}" for key in properties.keys()])
+        query = f"""
+            MATCH (a:{from_label} {{id: $from_id}}), (b:{to_label} {{id: $to_id}})
+            MERGE (a)-[r:{relation_type} {{ {props_str} }}]->(b)
+            RETURN r
+        """
+        return self._execute_query(query, from_id=from_id, to_id=to_id, **properties)
