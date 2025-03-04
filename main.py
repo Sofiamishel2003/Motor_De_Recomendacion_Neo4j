@@ -1,10 +1,13 @@
+import random
 from fastapi import FastAPI, HTTPException, Response
 from pydantic_settings import BaseSettings
 from model import GraphDB, Usuario, Pelicula, Serie, Genero, Actor, Director
 from fastapi.middleware.cors import CORSMiddleware
 import networkx as nx
 import matplotlib.pyplot as plt
+import matplotlib
 import io
+matplotlib.use("Agg")
 
 class Settings(BaseSettings):
     neo4j_uri: str
@@ -420,21 +423,63 @@ def vis_simple(data: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# @app.post("/vis-filter")
-# def vis_filter(data: dict):
-#     try:
-#         labels = data.get("f_labels")
-#         return {"a": labels}
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
-    
-# @app.post("/vis-aggregate")
-# def viz_aggregate(data: dict):
-#     try:
-#         aggregate = data.get("aggregate")
-#         if (aggregate not in ['MAX','MIN','AVG','SUM','COUNT']):
-#             raise HTTPException(status_code=500, detail="aggregate no es MAX, MIN, AVG, SUM o COUNT")
+@app.post("/vis-filter")
+def vis_filter(data: dict):
+    try:
+        labels = data.get("labels")
+        limit = data.get("limit")
+        rels = data.get("rels")
+        cond = data.get("cond")
+        edges = db.filter_match(labels, rels,cond, limit)
+        show_props = data.get("show_props")
+        G = nx.DiGraph()
+        props = []
+        for edge in edges:
+            if edge["n_labels"][0] not in props:
+                props.append(edge["n_labels"][0])
+            if edge["m_labels"][0] not in props:
+                props.append(edge["m_labels"][0])
+        color_map = {}
+        available_colors = ["lightblue", "lightgreen", "lightpurple", "orange", "pink", "brown"]
+        for prop in props:
+            if prop not in color_map:
+                color_map[prop] = random.choice(available_colors)
         
-#         return {}
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
+        node_colors = {}
+        for edge in edges:
+            a_label = ""
+            b_label = ""
+            if not show_props:
+                a_label = edge["n"].get("nombre") or edge["n"].get("titulo")
+                b_label = edge["m"].get("nombre") or edge["m"].get("titulo")
+            else:
+                a_keys = edge["n"].keys()
+                for k in a_keys:
+                    if(type(edge["n"][k])!=dict):
+                        a_label+= k+": "+str(edge["n"][k])+"\n"
+                b_keys = edge["m"].keys()
+                for k in b_keys:
+                    if(type(edge["m"][k])!=dict):
+                        b_label+= k+": "+str(edge["m"][k])+"\n"
+            G.add_node(edge['n']['id'], label=a_label)
+            G.add_node(edge['m']['id'], label=b_label)
+        
+            node_colors[edge["n"]["id"]] = color_map[edge["n_labels"][0]] # Color for "n" type
+            node_colors[edge["m"]["id"]] = color_map[edge["m_labels"][0]]
+    
+            G.add_edge(edge['n']['id'], edge['m']['id']) 
+        
+        labels = nx.get_node_attributes(G, "label") 
+        plt.figure(figsize=(8, 6))
+        pos = nx.spring_layout(G,k=2.0)
+        nx.draw(G, pos, labels=labels, with_labels=True, 
+                node_color=[node_colors[n] for n in G.nodes()], edge_color="gray", node_size=1500, font_size=5)
+
+        buf = io.BytesIO()
+        plt.savefig(buf, format="png")
+        plt.close()
+        buf.seek(0)
+        return Response(buf.read(), media_type="image/png")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    

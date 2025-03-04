@@ -465,7 +465,22 @@ class GraphDB:
         query = f"MATCH (a:{f_label})-[r:{rel}]->(b:{t_label}) RETURN a, r, b LIMIT {limit}"
         return self._execute_query(query)
     
-    def filter_match(self, f_labels):
-        query = ""
-        for f in f_labels:
-            pass
+    def filter_match(self, labels, rels, cond,limit):
+        query = "MATCH (n)-[r]->(m) "
+        if len(labels)>0:
+            query+= "WHERE ("
+            for index, f in enumerate(labels):
+                query+=f"n:{f}"
+                if(index<len(labels)-1):
+                    query+=" OR "
+                else:
+                    query+=") "
+        if len(rels)>0:
+            query+= f"AND TYPE(r) IN {rels} "
+        if len(cond)>0:
+            for c in cond:
+                c_list = c.split(',')
+                query+=f"AND (n.{c_list[0]} IS NOT NULL AND n.{c_list[0]}{c_list[1]}{c_list[2]}) "
+        query+=f"RETURN n, labels(n) AS n_labels, r, m, labels(m) AS m_labels LIMIT {limit}"
+        
+        return self._execute_query(query)
