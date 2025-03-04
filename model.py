@@ -445,11 +445,11 @@ class GraphDB:
         return {"error": "Node not found"}
     
     def get_node_by_id_and_label(self, node_id: str, label: str):
-        query = """
+        query = f"""
             MATCH (n:{label}) WHERE n.id = toInteger($node_id)
             RETURN labels(n) AS labels, n.id AS id
         """
-        result = self._execute_query(query, node_id=node_id)
+        result = self._execute_query(query, node_id=node_id)  # Pass as dictionary
 
         if result:
             record = result[0]  # Extract the first result
@@ -459,6 +459,7 @@ class GraphDB:
             }
 
         return {"error": "Node not found"}
+
 
 
 
