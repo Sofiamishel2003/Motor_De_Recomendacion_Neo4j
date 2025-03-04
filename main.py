@@ -402,11 +402,10 @@ def vis_simple(data: dict):
         f_label = data.get("f_label")
         f_val = data.get("f_val")
         t_label = data.get("t_label")
-        t_val = data.get("f_val")
+        t_val = data.get("t_val")
         rel = data.get("rel")
         limit = data.get("limit")
         edges = db.simple_match(f_label,t_label,rel,limit)
-        
         G = nx.DiGraph()
         node_colors = {}
         for edge in edges:
@@ -415,8 +414,9 @@ def vis_simple(data: dict):
         
             node_colors[edge["a"]["id"]] = "lightblue"  # Color for "n" type
             node_colors[edge["b"]["id"]] = "lightgreen"
-    
+            
             G.add_edge(edge['a']['id'], edge['b']['id']) 
+        
         labels = nx.get_node_attributes(G, "label") 
         plt.figure(figsize=(8, 6))
         pos = nx.spring_layout(G,k=2.0)
