@@ -484,3 +484,63 @@ class GraphDB:
         query+=f"RETURN n, labels(n) AS n_labels, r, m, labels(m) AS m_labels LIMIT {limit}"
         
         return self._execute_query(query)
+    
+    def top_rating(self, label, limit):
+        query = f"MATCH (a:{label}) with a ORDER BY a.rating DESC LIMIT {limit} RETURN collect(a)"
+        return self._execute_query(query)
+    
+    def top_views(self, label, limit):
+        query = f"MATCH (a:{label}) with a ORDER BY a.rating DESC LIMIT {limit} RETURN collect(a)"
+        return self._execute_query(query)
+    
+    def by_user_similartiy(self, id):
+        query = """
+            MATCH (a:Usuario {id: $id})-[:VIO]->(p:Pelicula)
+            MATCH (other:Usuario)-[:VIO]->(p)
+            MATCH (other:Usuario)-[:VIO]->(new:Pelicula)
+            WHERE other.id <> $id
+            RETURN new
+        """
+        return self._execute_query(query, id=int(id))
+    
+    def get_subgeneres(self,id):
+        query = """
+        MATCH (a:Usuario {id:$id})-[:VIO]->(p:Pelicula)-[:PERTENECE_A]->(g:Genero)
+        UNWIND g.subgeneros AS subgenero
+        RETURN subgenero, COUNT(subgenero) AS count
+        ORDER BY count DESC
+        """
+        return self._execute_query(query, id=int(id))
+    def by_subgenre(self, id, sub):
+        query = """
+        MATCH (a:Usuario{id:$id})-[:VIO]->(p:Pelicula)
+        MATCH (n:Pelicula)-[:PERTENECE_A]->(g:Genero)
+        WHERE $sub IN g.subgeneros
+        AND n.id<>p.id
+        WITH n
+        ORDER BY n.rating DESC
+        RETURN n LIMIT 5
+        """
+        return self._execute_query(query, id=int(id), sub=sub)
+    
+    def by_actor(self, id):
+        query = """
+        match (n:Usuario {id: $id})-[:ADMIRA]->(a:Actor)
+        match (n:Usuario {id: $id})-[:VIO]->(p:Pelicula)
+        MATCH (other:Pelicula)
+        WHERE p.id<>other.id
+        AND EXISTS{ (a)-[:PARTICIPO_EN]-(other) }
+        RETURN other
+        """
+        return self._execute_query(query, id=int(id))
+    
+    def by_director(self, id):
+        query = """
+        match (n:Usuario {id: $id})-[:SIGUE]->(a:Director)
+        match (n:Usuario {id: $id})-[:VIO]->(p:Pelicula)
+        MATCH (other:Pelicula)
+        WHERE p.id<>other.id
+        AND EXISTS{ (a)-[:DIRIGIDA_POR]-(other) }
+        RETURN other
+        """
+        return self._execute_query(query, id=int(id))

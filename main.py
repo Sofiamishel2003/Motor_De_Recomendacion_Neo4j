@@ -1,5 +1,6 @@
 import random
 from fastapi import FastAPI, HTTPException, Response
+import pandas as pd
 from pydantic_settings import BaseSettings
 from model import GraphDB, Usuario, Pelicula, Serie, Genero, Actor, Director
 from fastapi.middleware.cors import CORSMiddleware
@@ -490,3 +491,58 @@ def vis_filter(data: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+
+# Mejor calificadas
+@app.get("/top-rating/{label}")
+def dataminint(label: str):
+    top_media = db.top_media(label, 10)[0]["collect(a)"]
+    return top_media
+
+# Mas vistas
+@app.get("/top-views/{label}")
+def dataminint(label: str):
+    top_media = db.top_media(label, 10)[0]["collect(a)"]
+    return top_media
+
+# Estadisticas de Usuarios
+@app.get("/users-stats/")
+def user_stats():
+    # Get users edges
+    users = db.get_nodes_by_label("Usuario")
+    df = pd.DataFrame()
+    for u in users:
+        df =pd.concat([df, pd.DataFrame([u["n"]])],ignore_index=True)
+    df["edad"] = df["edad"].astype(int)
+    print(df.describe())
+    return {"users": "lol"}
+
+    # Convert to dataframe
+    # Filter only numeric
+    # Return describe
+
+@app.get("rec/user/{id}")
+def recommend(id:str):
+    rslt = db.by_user_similartiy(id)
+    return {"movies": rslt}
+
+@app.get("rec/subgenre/{id}")
+def get_sub(id:str):
+    print(id)
+    rslt = db.get_subgeneres(id)
+    fav = rslt[0]["subgenero"]
+    movies = db.by_subgenre(id, fav)
+    return {"movies": movies}
+
+@app.get("rec/actor/{id}")
+def get_sub(id:str):
+    rslt = db.by_actor(id)
+    return {"movies": rslt}
+
+@app.get("rec/director/{id}")
+def get_sub(id:str):
+    rslt = db.by_director(id)
+    return {"movies": rslt}
+
+## Por ACTOR
+## pOR DIRECTOR
+# Recomendacion de peliculas por usuario
