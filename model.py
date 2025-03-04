@@ -444,6 +444,11 @@ class GraphDB:
 
         return {"error": "Node not found"}
 
-
-
-
+    def simple_match(self, f_label, t_label, rel, limit):
+        query = f"MATCH (a:{f_label})-[r:{rel}]->(b:{t_label}) RETURN a, r, b LIMIT {limit}"
+        return self._execute_query(query)
+    
+    def filter_match(self, f_labels):
+        query = ""
+        for f in f_labels:
+            pass

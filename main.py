@@ -1,10 +1,10 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Response
 from pydantic_settings import BaseSettings
 from model import GraphDB, Usuario, Pelicula, Serie, Genero, Actor, Director
 from fastapi.middleware.cors import CORSMiddleware
-
-
-
+import networkx as nx
+import matplotlib.pyplot as plt
+import io
 
 class Settings(BaseSettings):
     neo4j_uri: str
@@ -380,3 +380,57 @@ def get_nodes_by_label(label: str):
 @app.get("/search/{node_id}")
 def search_by_id(node_id: str):
     return db.get_node_by_id(node_id)
+
+@app.post("/vis-simple")
+def vis_simple(data: dict):
+    try:
+        f_label = data.get("f_label")
+        f_val = data.get("f_val")
+        t_label = data.get("t_label")
+        t_val = data.get("f_val")
+        rel = data.get("rel")
+        limit = data.get("limit")
+        edges = db.simple_match(f_label,t_label,rel,limit)
+        
+        G = nx.DiGraph()
+        node_colors = {}
+        for edge in edges:
+            G.add_node(edge['a']['id'], label=edge['a'][f_val])
+            G.add_node(edge['b']['id'], label=edge['b'][t_val])
+        
+            node_colors[edge["a"]["id"]] = "lightblue"  # Color for "n" type
+            node_colors[edge["b"]["id"]] = "lightgreen"
+    
+            G.add_edge(edge['a']['id'], edge['b']['id']) 
+        labels = nx.get_node_attributes(G, "label") 
+        plt.figure(figsize=(8, 6))
+        pos = nx.spring_layout(G,k=2.0)
+        nx.draw(G, pos, labels=labels, with_labels=True, 
+                node_color=[node_colors[n] for n in G.nodes()], edge_color="gray", node_size=1500, font_size=5)
+
+        buf = io.BytesIO()
+        plt.savefig(buf, format="png")
+        plt.close()
+        buf.seek(0)
+        return Response(buf.read(), media_type="image/png")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# @app.post("/vis-filter")
+# def vis_filter(data: dict):
+#     try:
+#         labels = data.get("f_labels")
+#         return {"a": labels}
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
+    
+# @app.post("/vis-aggregate")
+# def viz_aggregate(data: dict):
+#     try:
+#         aggregate = data.get("aggregate")
+#         if (aggregate not in ['MAX','MIN','AVG','SUM','COUNT']):
+#             raise HTTPException(status_code=500, detail="aggregate no es MAX, MIN, AVG, SUM o COUNT")
+        
+#         return {}
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
