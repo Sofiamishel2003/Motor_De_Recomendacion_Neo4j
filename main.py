@@ -5,7 +5,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 
-
 class Settings(BaseSettings):
     neo4j_uri: str
     neo4j_username: str
