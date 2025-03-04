@@ -380,3 +380,7 @@ def get_nodes_by_label(label: str):
 @app.get("/search/{node_id}")
 def search_by_id(node_id: str):
     return db.get_node_by_id(node_id)
+
+@app.get("/searchidlabel/{node_id}/{label}")
+def search_by_id_and_label(node_id: str, label: str):
+    return db.get_node_by_id_and_label(node_id, label)
