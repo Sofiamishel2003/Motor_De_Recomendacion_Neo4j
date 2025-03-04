@@ -495,13 +495,13 @@ def vis_filter(data: dict):
 # Mejor calificadas
 @app.get("/top-rating/{label}")
 def dataminint(label: str):
-    top_media = db.top_media(label, 10)[0]["collect(a)"]
+    top_media = db.top_rating(label, 10)[0]["collect(a)"]
     return top_media
 
 # Mas vistas
 @app.get("/top-views/{label}")
 def dataminint(label: str):
-    top_media = db.top_media(label, 10)[0]["collect(a)"]
+    top_media = db.top_views(label, 10)[0]["collect(a)"]
     return top_media
 
 # Estadisticas de Usuarios
@@ -520,12 +520,12 @@ def user_stats():
     # Filter only numeric
     # Return describe
 
-@app.get("rec/user/{id}")
+@app.get("/rec/user/{id}")
 def recommend(id:str):
     rslt = db.by_user_similartiy(id)
     return {"movies": rslt}
 
-@app.get("rec/subgenre/{id}")
+@app.get("/rec/subgenre/{id}")
 def get_sub(id:str):
     print(id)
     rslt = db.get_subgeneres(id)
@@ -533,12 +533,12 @@ def get_sub(id:str):
     movies = db.by_subgenre(id, fav)
     return {"movies": movies}
 
-@app.get("rec/actor/{id}")
+@app.get("/rec/actor/{id}")
 def get_sub(id:str):
     rslt = db.by_actor(id)
     return {"movies": rslt}
 
-@app.get("rec/director/{id}")
+@app.get("/rec/director/{id}")
 def get_sub(id:str):
     rslt = db.by_director(id)
     return {"movies": rslt}
