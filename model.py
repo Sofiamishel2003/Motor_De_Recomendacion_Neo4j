@@ -254,25 +254,25 @@ class GraphDB:
 
     ## crea nodo con 1 label
     def create_node_with_label(self, label: str):
-        query = f"CREATE (n:{label}) RETURN id(n) AS node_id"
+        query = f"CREATE (n:{label}) RETURN n.id AS node_id"
         return self._execute_query(query)
 
     ## crea nodo con 2+ labels
     def create_node_with_multiple_labels(self, labels: list):
         labels_str = ":".join(labels)
-        query = f"CREATE (n:{labels_str}) RETURN id(n) AS node_id"
+        query = f"CREATE (n:{labels_str}) RETURN n.id AS node_id"
         return self._execute_query(query)
 
     ## crea nodo con propiedades
     def create_node_with_properties(self, label: str, properties: dict):
         props_str = ", ".join([f"n.{key} = ${key}" for key in properties.keys()])
-        query = f"CREATE (n:{label}) SET {props_str} RETURN id(n) AS node_id"
+        query = f"CREATE (n:{label}) SET {props_str} RETURN n.id AS node_id"
         return self._execute_query(query, **properties)
 
     ## agrega propiedades a un nodo
     def add_properties_to_node(self, label: str, node_id: int, properties: dict):
         props_str = ", ".join([f"n.{key} = ${key}" for key in properties.keys()])
-        query = f"MATCH (n:{label}) WHERE id(n) = $node_id SET {props_str} RETURN n"
+        query = f"MATCH (n:{label}) WHERE n.id = $node_id SET {props_str} RETURN n"
         return self._execute_query(query, node_id=node_id, **properties)
 
     ## agrega propiedades a varios nodos
@@ -280,7 +280,7 @@ class GraphDB:
         props_str = ", ".join([f"n.{key} = ${key}" for key in properties.keys()])
         query = f"""
             MATCH (n:{label}) 
-            WHERE id(n) IN $node_ids 
+            WHERE n.id IN $node_ids 
             SET {props_str} 
             RETURN n
         """
@@ -289,7 +289,7 @@ class GraphDB:
     ## actualiza propiedades en un nodo
     def update_node_properties(self, label: str, node_id: int, properties: dict):
         props_str = ", ".join([f"n.{key} = ${key}" for key in properties.keys()])
-        query = f"MATCH (n:{label}) WHERE id(n) = $node_id SET {props_str} RETURN n"
+        query = f"MATCH (n:{label}) WHERE n.id = $node_id SET {props_str} RETURN n"
         return self._execute_query(query, node_id=node_id, **properties)
 
     ## actualizar propiedades en varios nodos
@@ -297,7 +297,7 @@ class GraphDB:
         props_str = ", ".join([f"n.{key} = ${key}" for key in properties.keys()])
         query = f"""
             MATCH (n:{label}) 
-            WHERE id(n) IN $node_ids 
+            WHERE n.id IN $node_ids 
             SET {props_str} 
             RETURN n
         """
@@ -306,7 +306,7 @@ class GraphDB:
     ## elimina propiedades de un nodo
     def delete_node_properties(self, label: str, node_id: int, properties: list):
         props_str = ", ".join([f"n.{prop} = NULL" for prop in properties])
-        query = f"MATCH (n:{label}) WHERE id(n) = $node_id SET {props_str} RETURN n"
+        query = f"MATCH (n:{label}) WHERE n.id = $node_id SET {props_str} RETURN n"
         return self._execute_query(query, node_id=node_id)
 
     ## eliminar propiedades de varios nodos
@@ -314,7 +314,7 @@ class GraphDB:
         props_str = ", ".join([f"n.{prop} = NULL" for prop in properties])
         query = f"""
             MATCH (n:{label}) 
-            WHERE id(n) IN $node_ids 
+            WHERE n.id IN $node_ids 
             SET {props_str} 
             RETURN n
         """
@@ -430,8 +430,8 @@ class GraphDB:
 
     def get_node_by_id(self, node_id: str):
         query = """
-            MATCH (n) WHERE ID(n) = toInteger($node_id)
-            RETURN labels(n) AS labels, ID(n) AS id
+            MATCH (n) WHERE n.id = toInteger($node_id)
+            RETURN labels(n) AS labels, n.id AS id
         """
         result = self._execute_query(query, node_id=node_id)
 
@@ -443,6 +443,23 @@ class GraphDB:
             }
 
         return {"error": "Node not found"}
+    
+    def get_node_by_id_and_label(self, node_id: str, label: str):
+        query = f"""
+            MATCH (n:{label}) WHERE n.id = toInteger($node_id)
+            RETURN labels(n) AS labels, n.id AS id
+        """
+        result = self._execute_query(query, node_id=node_id)  # Pass as dictionary
+
+        if result:
+            record = result[0]  # Extract the first result
+            return {
+                "id": record["id"],
+                "labels": record["labels"]
+            }
+
+        return {"error": "Node not found"}
+
 
     def simple_match(self, f_label, t_label, rel, limit):
         query = f"MATCH (a:{f_label})-[r:{rel}]->(b:{t_label}) RETURN a, r, b LIMIT {limit}"
